@@ -1,7 +1,9 @@
-// validate/validatePassword.go
 package validate
 
 import (
+    "bufio"
+    "fmt"
+    "os"
     "strings"
 )
 
@@ -12,7 +14,30 @@ const (
     symbols = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`"
 )
 
-func ValidatePassword(password string) int {
+// LoadCommonPasswords loads a list of common passwords from a file.
+func LoadCommonPasswords() ([]string, error) {
+    file, err := os.Open("validate/common-passwords.txt")
+    if err != nil {
+        return nil, err
+    }
+    defer file.Close()
+
+    var commonPasswords []string
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        commonPasswords = append(commonPasswords, scanner.Text())
+    }
+
+    if err := scanner.Err(); err != nil {
+        return nil, err
+    }
+
+    return commonPasswords, nil
+}
+
+// ValidatePassword evaluates the strength of a password and checks if it is in the list of common passwords.
+func ValidatePassword(password string) (int) {
+    // Evaluate password strength
     var score int
     if len(password) >= 8 {
         score += 1
@@ -39,5 +64,20 @@ func ValidatePassword(password string) int {
             hasSymbol = true
         }
     }
+
+    // Check if password is common
+    commonPasswords, err := LoadCommonPasswords()
+    if err != nil {
+        fmt.Println("Error loading common passwords:", err)
+        return score
+    }
+
+    for _, common := range commonPasswords {
+        if strings.Contains(password, common) {
+            return 0
+        }
+    }
+
+
     return score
 }

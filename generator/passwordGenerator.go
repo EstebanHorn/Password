@@ -4,7 +4,6 @@ package generator
 import (
     "math/rand"
     "time"
-    "unicode/utf8"
 )
 
 const (
